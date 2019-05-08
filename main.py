@@ -1,44 +1,31 @@
-import glob
-import os
-import shutil
-import sys
-
-from PyPDF2 import PdfFileReader
-
+import glob, os, shutil, sys
 from tss.TimeSheetSigner import TimeSheetSigner
 
 
 def ajuda():
     print('= HELP =')
-    print('Command: python3 Main.py [option]')
+    print('Command: python3 main.py [option]')
     print('Options:')
-    print('\t importarlattes[=bancodedados - para escrever a saida em banco de dados. Valor padrao: arquivo]')
-    print('\t importarpdfs')
-    print('\t gerarevento[=<nome do evento>] - para especificar o event')
-    print('\t gerarpdf')
-    print('\t fazerbackup')
+    print('\t assinar')
     print('\t ajuda')
-    print('Example: python3 Main.py importarlattes importarpfds gerarevento gerarpdf')
-    print('Example: python3 Main.py importarpfds gerarpdf')
+    print('Example: python3 main.py assinar')
 
 
-def realizar_assinar(origem, destino, assinatura, tmp):
+def realizar_assinatura(origem, destino, assinatura, tmp):
+    tss = TimeSheetSigner(assinatura, tmp)
     for arquivo in glob.iglob(origem + '**/*.pdf', recursive=True):
-        nome_arquivo_origem = arquivo[arquivo.rfind('\\') + 1:len(arquivo)]
-        pdf_file = PdfFileReader(open(arquivo, 'rb'))
-        if not pdf_file.isEncrypted:
-            tss = TimeSheetSigner(tmp)
-            tss.assinar(nome_arquivo_origem, arquivo, destino, assinatura, tmp)
-            print('arquivo lido: {0}'.format(nome_arquivo_origem))
-        else:
-            print('arquivo ignorado: {0}'.format(nome_arquivo_origem))
+        tss.assinar(arquivo, destino)
 
 
 origem = 'files/pdf/unassigned/'
 destino = 'files/pdf/signed/'
-assinatura = 'files/assinatura.gif'
+assinatura = 'files/assinatura.jpg'
 tmp = 'files/tmp/'
 if __name__ == '__main__':
+
+    if not os.path.exists(tmp):
+        os.makedirs(tmp)
+
     j = len(sys.argv)
     if j > 1:
         print()
@@ -57,7 +44,7 @@ if __name__ == '__main__':
                 ajuda()
 
         if assinar:
-            realizar_assinar(origem, destino, assinatura, tmp)
+            realizar_assinatura(origem, destino, assinatura, tmp)
         else:
             ajuda()
     else:

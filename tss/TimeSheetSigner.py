@@ -2,49 +2,41 @@ import os
 import uuid
 
 from PyPDF2 import PdfFileWriter, PdfFileReader
-from reportlab.lib.colors import Color
 from reportlab.lib.units import cm
 from reportlab.pdfgen import canvas
 
 
 class TimeSheetSigner(object):
 
-    def __init__(self, tmp):
-        if not os.path.exists(tmp):
-            os.makedirs(tmp)
+    def __init__(self, assinatura, tmp):
+        self.assinatura = assinatura
+        self.tmp = tmp
+        if not os.path.exists(self.tmp):
+            os.makedirs(self.tmp)
 
-    '''
-        # fundo da assinatura
-        #color = Color(255, 255, 255, alpha=0.5)
-        #c.setFillColor(color)
-        #c.setStrokeColor(color)
-        #c.rect(largura - (2 * cm), (0.5 * cm), (1.5 * cm), (1.5 * cm), fill=1)
-        # assinatura
-        c.setFillColor(Color(0, 0, 0, alpha=1))
-        c.drawImage(assinatura, largura - (2 * cm), (0.5 * cm), width=(1.5 * cm), height=(1.5 * cm))
-    '''
-
-    def aplicar_assinatura(self, largura, altura, assinatura, tmp):
-        arquivo = '{0}{1}'.format(tmp, str(uuid.uuid4()))
+    def gerar_pagina_assinada(self, largura, altura):
+        arquivo = '{0}{1}'.format(self.tmp, str(uuid.uuid4()))
         c = canvas.Canvas(arquivo, pagesize=(largura, altura))
-
-        # assinatura
-        c.setFillColor(Color(0, 0, 0, alpha=1))
-        c.drawImage(assinatura, largura - (11.5 * cm), (7.25 * cm), width=(1.5 * cm), height=(1.5 * cm))
-
+        c.drawImage(self.assinatura, largura - (11.5 * cm), (7.25 * cm), width=(1.5 * cm), height=(1.5 * cm))
         c.showPage()
         c.save()
-        pagina_assinada = PdfFileReader(open(arquivo, 'rb'))
-        return pagina_assinada.getPage(0)
+        return PdfFileReader(open(arquivo, 'rb')).getPage(0)
 
-    def assinar(self, nome_arquivo, arquivo, destino, assinatura, tmp):
-        pagina = PdfFileReader(open(arquivo, 'rb')).getPage(0)
-        largura = float(pagina.mediaBox.getWidth())
-        altura = float(pagina.mediaBox.getHeight())
-        pagina_assinada = self.aplicar_assinatura(largura, altura, assinatura, tmp)
-        pagina.mergePage(pagina_assinada)
-        arquivo_destino = PdfFileWriter()
-        arquivo_destino.addPage(pagina)
-        with open('{0}{1}'.format(destino, nome_arquivo), 'wb') as f:
-            arquivo_destino.write(f)
-            print('arquivo gerado: {0}'.format(nome_arquivo))
+    def assinar(self, arquivo, destino):
+        nome_arquivo = arquivo[arquivo.rfind('\\') + 1:len(arquivo)]
+        _arquivo = PdfFileReader(open(arquivo, 'rb'))
+        if _arquivo.isEncrypted:
+            print('arquivo ignorado: {0}'.format(nome_arquivo))
+        else:
+            print('arquivo encontrado: {0}'.format(nome_arquivo))
+            pagina = _arquivo.getPage(0)
+            largura = float(pagina.mediaBox.getWidth())
+            altura = float(pagina.mediaBox.getHeight())
+            pagina_assinada = self.gerar_pagina_assinada(largura, altura)
+            pagina.mergePage(pagina_assinada)
+            _destino = PdfFileWriter()
+            _destino.addPage(pagina)
+            _nome_arquivo = nome_arquivo.replace(' ', '_')
+            with open('{0}{1}'.format(destino, _nome_arquivo), 'wb') as f:
+                _destino.write(f)
+                print('arquivo gerado: {0}'.format(_nome_arquivo))
