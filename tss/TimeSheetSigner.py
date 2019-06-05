@@ -4,20 +4,36 @@ import uuid
 from PyPDF2 import PdfFileWriter, PdfFileReader
 from reportlab.lib.units import cm
 from reportlab.pdfgen import canvas
+from calendar import monthrange
 
 
 class TimeSheetSigner(object):
 
-    def __init__(self, assinatura, tmp):
+    def __init__(self, assinatura, ano, mes, tmp):
+        self.ano = int(ano)
+        self.mes = int(mes)
         self.assinatura = assinatura
         self.tmp = tmp
         if not os.path.exists(self.tmp):
             os.makedirs(self.tmp)
 
+    def definir_x_y(self, largura):
+        first_weekday, dias = None, 30
+        if self.ano is not None and self.mes is not None:
+            first_weekday, dias = monthrange(self.ano, self.mes)
+        x = largura - (11.5 * cm)
+        y = (7.25 * cm)
+        if dias in range(28, 29):
+            y = (7.5 * cm)
+        elif dias == 31:
+            y = (7 * cm)
+        return x, y
+
     def gerar_pagina_assinada(self, largura, altura):
         arquivo = '{0}{1}'.format(self.tmp, str(uuid.uuid4()))
         c = canvas.Canvas(arquivo, pagesize=(largura, altura))
-        c.drawImage(self.assinatura, largura - (11.5 * cm), (7.25 * cm), width=(1.5 * cm), height=(1.5 * cm))
+        x, y = self.definir_x_y(largura)
+        c.drawImage(self.assinatura, x, y, width=(1.5 * cm), height=(1.5 * cm))
         c.showPage()
         c.save()
         return PdfFileReader(open(arquivo, 'rb')).getPage(0)
