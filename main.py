@@ -35,38 +35,51 @@ def realizar_assinatura(origem, destino, assinatura, mes, separador, tmp):
             tss.assinar(arquivo, destino)
 
 
+def definir_entradas():
+    assinar = False
+    mes = None
+    separador = '-'
+    comandoChave, comandoValor = None, None
+    for i in range(1, len(sys.argv)):
+        if sys.argv[i].find('=') > 1:
+            comandoChave, comandoValor = sys.argv[i].split('=')
+        else:
+            comandoChave = sys.argv[i]
+
+        if comandoChave == 'assinar':
+            assinar = True
+        elif comandoChave == 'mes':
+            mes = comandoValor
+        elif comandoChave == 'separador':
+            separador = comandoValor
+    return assinar, mes, separador
+
+
+def configurar(tmp):
+    if not os.path.exists(tmp):
+        os.makedirs(tmp)
+
+
+def encerrar(tmp):
+    if os.path.exists(tmp):
+        try:
+            shutil.rmtree(tmp)
+        except PermissionError:
+            pass
+
+
 origem = 'files/pdf/unassigned/'
 destino = 'files/pdf/signed/'
 assinatura = 'files/assinatura.jpg'
 tmp = 'files/tmp/'
 if __name__ == '__main__':
-
-    if not os.path.exists(tmp):
-        os.makedirs(tmp)
+    print()
+    print('inicio')
+    configurar(tmp)
 
     j = len(sys.argv)
     if j > 1:
-        print()
-        print('inicio')
-        assinar = False
-        mes = None
-        separador = '-'
-        comandoChave, comandoValor = None, None
-        for i in range(1, len(sys.argv)):
-            if sys.argv[i].find('=') > 1:
-                comandoChave, comandoValor = sys.argv[i].split('=')
-            else:
-                comandoChave = sys.argv[i]
-
-            if comandoChave == 'assinar':
-                assinar = True
-            elif comandoChave == 'mes':
-                mes = comandoValor
-            elif comandoChave == 'separador':
-                separador = comandoValor
-            else:
-                ajuda()
-
+        assinar, mes, separador = definir_entradas()
         if assinar:
             realizar_assinatura(origem, destino, assinatura, mes, separador, tmp)
         else:
@@ -74,9 +87,5 @@ if __name__ == '__main__':
     else:
         ajuda()
 
-    if os.path.exists(tmp):
-        try:
-            shutil.rmtree(tmp)
-        except PermissionError:
-            pass
+    encerrar(tmp)
     print('fim')
