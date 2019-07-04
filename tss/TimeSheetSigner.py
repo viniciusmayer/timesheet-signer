@@ -10,8 +10,8 @@ from calendar import monthrange
 class TimeSheetSigner(object):
 
     def __init__(self, assinatura, ano, mes, tmp):
-        self.ano = int(ano)
-        self.mes = int(mes)
+        self.ano = int(ano) if ano is not None else None
+        self.mes = int(mes) if mes is not None else None
         self.assinatura = assinatura
         self.tmp = tmp
         if not os.path.exists(self.tmp):
@@ -53,6 +53,6 @@ class TimeSheetSigner(object):
             _destino = PdfFileWriter()
             _destino.addPage(pagina)
             _nome_arquivo = nome_arquivo.replace(' ', '_')
-            with open('{0}{1}'.format(destino, _nome_arquivo), 'wb') as f:
+            with open('{0}{1}-{2}'.format(destino, 'assinado', _nome_arquivo), 'wb') as f:
                 _destino.write(f)
                 print('arquivo gerado: {0}'.format(_nome_arquivo))
