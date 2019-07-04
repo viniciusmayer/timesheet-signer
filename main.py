@@ -68,8 +68,8 @@ def encerrar(tmp):
             pass
 
 
-origem = 'files/pdf/unassigned/'
-destino = 'files/pdf/signed/'
+origem = 'files/pdf/'
+destino = 'files/pdf/'
 assinatura = 'files/assinatura.jpg'
 tmp = 'files/tmp/'
 if __name__ == '__main__':
