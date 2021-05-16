@@ -16,9 +16,12 @@ def definir_ano_mes(arquivo):
     mes = None
     ano_mes = None
     if arquivo is not None:
-        ano = int(arquivo[13:17])
-        mes = int(arquivo[18:20])
-        ano_mes = '{0}{1}{2}'.format(ano, '-', mes)
+        try:
+            ano = int(arquivo[13:17])
+            mes = int(arquivo[18:20])
+            ano_mes = '{0}{1}{2}'.format(ano, '-', mes)
+        except:
+            print('erro trying get ano and mes')
     return ano, mes, ano_mes
 
 
@@ -29,13 +32,13 @@ def assinar_arquivos(origem, destino, assinatura, tmp):
         tss.assinar(arquivo, destino, ano, mes)
 
 
-def assinar_arquivo(origem, destino, assinatura, x, y, tmp):
+def assinar_arquivo(origem, destino, assinatura, x, y, pagina, tmp):
     tss = FileSigner(assinatura, tmp)
-    tss.assinar(origem, destino, x, y)
+    tss.assinar(origem, destino, x, y, pagina)
 
 
 def definir_entradas():
-    x, y, nome_arquivo = None, None, None
+    x, y, nome_arquivo, pagina = None, None, None, 0
     for i in range(1, len(sys.argv)):
         comando = sys.argv[i]
         if comando.find('=') >= 1:
@@ -49,10 +52,12 @@ def definir_entradas():
             x = int(comandoValor)
         elif comandoChave == 'y':
             y = int(comandoValor)
+        elif comandoChave == 'pagina':
+            pagina = int(comandoValor)
         else:
             ajuda()
 
-    return x, y, nome_arquivo
+    return x, y, nome_arquivo, pagina
 
 
 def encerrar(tmp):
@@ -65,16 +70,16 @@ def encerrar(tmp):
 
 origem = 'files/origem/'
 destino = 'files/destino/'
-assinatura = 'files/assinatura.jpg'
+assinatura = 'files/assinatura-paudadaniele.jpeg'
 tmp = 'files/tmp/'
 if __name__ == '__main__':
     print()
     print('inicio')
 
-    x, y, nome_arquivo = definir_entradas()
+    x, y, nome_arquivo, pagina = definir_entradas()
     if nome_arquivo is not None:
         origem = nome_arquivo
-        assinar_arquivo(origem, destino, assinatura, x, y, tmp)
+        assinar_arquivo(origem, destino, assinatura, x, y, pagina, tmp)
     else:
         assinar_arquivos(origem, destino, assinatura, tmp)
 
